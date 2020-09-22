@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class Player: MonoBehaviour
 {
     public float HP;
-    public float Attackk;
+    public float Attack;
     public float Speed;
     public Quest acceptedQuest;
     public List<Quest> finishedQuests;
@@ -17,9 +17,9 @@ public class Player: MonoBehaviour
     private void Start()
     {
         animator = GetComponent<Animator>();
-        Attackk = 10f;
+        Attack = 10f;
         HP = 100f;
-        Speed = 0.6f;
+        Speed = 0.3f;
         HPbar = GetComponentInChildren<Image>();
         startHP = HP;
     }

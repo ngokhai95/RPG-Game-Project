@@ -9,35 +9,35 @@ using Unity.MLAgents.Sensors;
 using System.Threading;
 using UnityEngine.SceneManagement;
 using MalbersAnimations;
+using Cinemachine;
 
 public class PlayerController : MonoBehaviour
 {
     public Player player;
+    public float rotationSpeed;
+    public float walkSpd;
+    public float runSpd;
+    public Transform followTarget;
+    public float sensitivity;
+    public CinemachineVirtualCamera playerCam;
+    public float zoomSpd;
+
+    private float targetZoom;
+    private float smoothValue;
     private Rigidbody Rigid;
     Vector3 verticalSpeed;
     Vector3 horizontalSpeed;
-    private bool isHit;
-    GameObject dragon;
     GameObject world;
     private bool isDead;
-    public float rotationSpeed = 50f;
-    public float deadZoneDegrees = 15f;
-
-    private Transform mainCam;
-
-    private Vector3 cameraDirection;
-    private Vector3 playerDirection;
-    private Quaternion targetRotation;
-
+    
+    
     // Start is called before the first frame update
     void Start()
     {
-        mainCam = Camera.main.transform;
         Rigid = GetComponent<Rigidbody>();
-        dragon = GameObject.FindWithTag("Dragon");
         world = GameObject.FindWithTag("World");
-        isHit = false;
         isDead = false;
+        smoothValue = 5.0f;
     }
 
     // Update is called once per frame
@@ -53,9 +53,11 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                //panning
+                //camera
+                CameraRotation();
+                Zoom();
+                //character
                 Rotation();
-                //moving
                 Movement();
                 MovementAnimation();
                 Attack();
@@ -65,47 +67,60 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == ("Dragon"))
+        if (other.tag == ("Dragon") || other.tag == ("DragonParts"))
         {
-            isHit = true;
+            if (player.isAttacking())
+            {
+                other.GetComponentInParent<Animal>().life = other.GetComponentInParent<Animal>().life - 5;
+                other.GetComponentInParent<Animal>().Damaged = true;
+            }
         }
 
 
     }
-    private void OnTriggerExit(Collider other)
+
+    //camera inputs
+    private void CameraRotation()
     {
-        if (other.tag == ("Dragon"))
+        followTarget.rotation *= Quaternion.AngleAxis(Input.GetAxis("Mouse X") * sensitivity, Vector3.up);
+        followTarget.rotation *= Quaternion.AngleAxis(-Input.GetAxis("Mouse Y") * sensitivity, Vector3.right);
+
+        var angles = followTarget.localEulerAngles;
+        angles.z = 0;
+
+        var angle = followTarget.localEulerAngles.x;
+
+        if (angle > 180 && angle < 340)
         {
-            
+            angles.x = 340;
+        }
+        else if (angle < 180 && angle > 40)
+        {
+            angles.x = 40;
+        }
+        followTarget.transform.localEulerAngles = angles;
+        if (Rigid.velocity.magnitude > 0.1f)
+        {
+            transform.rotation = Quaternion.Euler(0, followTarget.rotation.eulerAngles.y, 0);
+            followTarget.localEulerAngles = new Vector3(angles.x, 0, 0);
         }
     }
 
-    
+
+    private void Zoom()
+    {
+        float scrollData;
+        scrollData = Input.GetAxis("Mouse ScrollWheel");
+        targetZoom -= scrollData * smoothValue;
+        targetZoom = Mathf.Clamp(targetZoom, 20f, 90f);
+        playerCam.m_Lens.FieldOfView = Mathf.Lerp(playerCam.m_Lens.FieldOfView, targetZoom, Time.deltaTime * zoomSpd);
+
+    }
+
     //player inputs
     private void Rotation()
     {
-        if (world.GetComponent<GameSystem>().frontMode)
-        {
-            cameraDirection = new Vector3(mainCam.forward.x, 0f, mainCam.forward.z);
-            playerDirection = new Vector3(transform.forward.x, 0f, transform.forward.z);
-
-            if (Vector3.Angle(cameraDirection, playerDirection) > deadZoneDegrees)
-            {
-                targetRotation = Quaternion.LookRotation(cameraDirection, transform.up);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-            }
-        }
-        else
-        {
-            cameraDirection = new Vector3(mainCam.forward.x, 0f, mainCam.forward.z);
-            playerDirection = new Vector3(transform.forward.x, 0f, transform.forward.z);
-
-            if (Vector3.Angle(cameraDirection, playerDirection) > deadZoneDegrees)
-            {
-                targetRotation = Quaternion.LookRotation(cameraDirection, transform.up);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-            }
-        }
+        transform.rotation *= Quaternion.AngleAxis(Input.GetAxis("Horizontal") * rotationSpeed, Vector3.up);
     }
 
     private void Movement()
@@ -120,31 +135,33 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetAxis("Vertical") < 0)
         {
-            if (Rigid.velocity.magnitude <= player.Speed * 10)
+            if (Rigid.velocity.magnitude <= player.Speed * walkSpd)
             {   
                 Rigid.AddForce(verticalSpeed + horizontalSpeed, ForceMode.VelocityChange);
+            }
+            else
+            {
+                Rigid.velocity = Rigid.velocity * 0.9f;
             }
         }
         else if (Input.GetAxis("Horizontal") > 0)
         {
-            if (Rigid.velocity.magnitude <= player.Speed * 20)
+            if (Rigid.velocity.magnitude <= player.Speed * runSpd)
             {
-                
-                Rigid.AddForce(verticalSpeed + horizontalSpeed, ForceMode.VelocityChange);
+                Rigid.AddForce(verticalSpeed + horizontalSpeed/2, ForceMode.VelocityChange);
             }
 
         }
         else if (Input.GetAxis("Horizontal") < 0)
         {
-            if (Rigid.velocity.magnitude <= player.Speed * 20)
+            if (Rigid.velocity.magnitude <= player.Speed * runSpd)
             {
-                player.RunAnimation(2);
-                Rigid.AddForce(verticalSpeed + horizontalSpeed, ForceMode.VelocityChange);
+                Rigid.AddForce(verticalSpeed + horizontalSpeed/2, ForceMode.VelocityChange);
             }
         }
         else if (Input.GetAxis("Vertical") > 0)
         {
-            if (Rigid.velocity.magnitude <= player.Speed * 20)
+            if (Rigid.velocity.magnitude <= player.Speed * runSpd)
             {
                 Rigid.AddForce(verticalSpeed + horizontalSpeed, ForceMode.VelocityChange);
             }
@@ -155,7 +172,7 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.W))
         {
-            if (Rigid.velocity.magnitude <= player.Speed * 10)
+            if (Rigid.velocity.magnitude <= player.Speed * walkSpd)
                 player.MoveAnimation(0);
             else
                 player.RunAnimation(0);
@@ -166,14 +183,14 @@ public class PlayerController : MonoBehaviour
         }
         if (Input.GetKey(KeyCode.A))
         {
-            if (Rigid.velocity.magnitude <= player.Speed * 10)
+            if (Rigid.velocity.magnitude <= player.Speed * walkSpd)
                 player.MoveAnimation(2);
             else
                 player.RunAnimation(2);
         }
         if (Input.GetKey(KeyCode.D))
         {
-            if (Rigid.velocity.magnitude <= player.Speed * 10)
+            if (Rigid.velocity.magnitude <= player.Speed * walkSpd)
                 player.MoveAnimation(3);
             else
                 player.RunAnimation(3);
@@ -185,54 +202,18 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Mouse0) && !player.isAttacking())
         {
             player.AttackAnimation(1);
-            if (isHit)
-            {
-                if (dragon != null)
-                {
-                    dragon.GetComponent<Animal>().life = dragon.GetComponent<Animal>().life - 5;
-                    dragon.GetComponent<Animal>().Damaged = true;
-                    isHit = false;
-                }
-            }
         }
         if (Input.GetKeyDown(KeyCode.Mouse1) && !player.isAttacking())
         {
             player.AttackAnimation(2);
-            if (isHit)
-            {
-                if (dragon != null)
-                {
-                    dragon.GetComponent<Animal>().life = dragon.GetComponent<Animal>().life - 15;
-                    dragon.GetComponent<Animal>().Damaged = true;
-                    isHit = false;
-                }
-            }
         }
         if (Input.GetKeyDown(KeyCode.Mouse0) && !player.isAttacking() && player.isRunning())
         {
             player.AttackAnimation(3);
-            if (isHit)
-            {
-                if (dragon != null)
-                {
-                    dragon.GetComponent<Animal>().life = dragon.GetComponent<Animal>().life - 10;
-                    dragon.GetComponent<Animal>().Damaged = true;
-                    isHit = false;
-                }
-            }
         }
         if (Input.GetKeyDown(KeyCode.Mouse1) && !player.isAttacking() && player.isRunning())
         {
             player.AttackAnimation(4);
-            if (isHit)
-            {
-                if (dragon != null)
-                {
-                    dragon.GetComponent<Animal>().life = dragon.GetComponent<Animal>().life - 20;
-                    dragon.GetComponent<Animal>().Damaged = true;
-                    isHit = false;
-                }
-            }
         }
     }
 }

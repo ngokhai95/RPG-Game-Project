@@ -5,33 +5,45 @@ using UnityEngine.UIElements;
 
 public class CameraController : MonoBehaviour
 {
-    public float spdH;
-    public float spdV;
+    public Transform followTarget;
+    public float sensitivity;
 
-    private float yaw;
-    private float pitch;
     private float targetZoom;
     private float smoothValue;
-    private float zoomSpd;
 
     void Start()
     {
-        targetZoom = GetComponent<Camera>().fieldOfView;
         smoothValue = 5.0f;
-        zoomSpd = 100.0f;
     }
    
     void Update()
     {
-        Rotation();
+        CameraRotation();
         Zoom();
     }
 
-    private void Rotation()
+    private void CameraRotation()
     {
-        yaw += spdH * Input.GetAxis("Mouse X");
-        pitch -= spdV * Input.GetAxis("Mouse Y");
-        transform.eulerAngles = new Vector3(pitch, yaw, 0.0f);
+        followTarget.rotation *= Quaternion.AngleAxis(Input.GetAxis("Mouse X") * sensitivity, Vector3.up);
+        followTarget.rotation *= Quaternion.AngleAxis(-Input.GetAxis("Mouse Y") * sensitivity, Vector3.right);
+
+        var angles = followTarget.localEulerAngles;
+        angles.z = 0;
+
+        var angle = followTarget.localEulerAngles.x;
+
+        if(angle > 180 && angle < 340)
+        {
+            angles.x = 340;
+        }
+        else if (angle < 180 && angle > 40)
+        {
+            angles.x = 40;
+        }
+
+        followTarget.transform.localEulerAngles = angles;
+        //transform.rotation = Quaternion.Euler(0, followTarget.rotation.eulerAngles.y, 0);
+        //followTarget.localEulerAngles = new Vector3(angles.x, 0, 0);
     }
 
 
@@ -42,7 +54,7 @@ public class CameraController : MonoBehaviour
 
         targetZoom -= scrollData * smoothValue;
         targetZoom = Mathf.Clamp(targetZoom, 10f, 90f);
-        GetComponent<Camera>().fieldOfView = Mathf.Lerp(GetComponent<Camera>().fieldOfView, targetZoom, Time.deltaTime * zoomSpd);
+  
     }
 
 

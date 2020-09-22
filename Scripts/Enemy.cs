@@ -10,8 +10,7 @@ public class Enemy : MonoBehaviour
 {
     AnimalAIControl follow;
     Player player;
-    GameObject[] spawns;
-    GameObject spawn1;
+    GameObject spawn;
     GameObject npc;
     Animal dragon;
     public float AttackDelay;
@@ -25,8 +24,7 @@ public class Enemy : MonoBehaviour
     void Start()
     {
         player = GameObject.FindWithTag("Player").GetComponent<Player>() ;
-        spawns = GameObject.FindGameObjectsWithTag("Spawn1");
-        spawn1 = GetClosestSpawn(spawns);
+        spawn = this.transform.Find("Spawn Point").gameObject;    
         follow = this.GetComponent<AnimalAIControl>();
         dragon = this.GetComponent<Animal>();
         npc = GameObject.FindWithTag("NPC");
@@ -54,10 +52,10 @@ public class Enemy : MonoBehaviour
                 {
                     StopAttack();
                     this.GetComponent<LookAt>().enabled = false;
-                    if (spawn1 == null)
+                    if (spawn == null)
                         return;
-                    follow.target = spawn1.transform;
-                    
+                    follow.target = spawn.transform;
+                    Reposition(3);
                 }
             }
             if(npc != null)
@@ -67,9 +65,9 @@ public class Enemy : MonoBehaviour
                 {
                     StopAttack();
                     this.GetComponent<LookAt>().enabled = false;
-                    if (spawn1 == null)
+                    if (spawn == null)
                         return;
-                    follow.target = spawn1.transform; 
+                    follow.target = spawn.transform; 
                 }
             }
             
@@ -98,7 +96,7 @@ public class Enemy : MonoBehaviour
             follow.target = player.transform;
             this.GetComponent<LookAt>().Target = player.transform;
             this.GetComponent<LookAt>().enabled = true;
-            if (Vector3.Distance(transform.position, player.transform.position) < 5.0f)
+            if (Vector3.Distance(transform.position, player.transform.position) < 4.0f)
             {
 
                 if (!isAttacking)
@@ -112,29 +110,34 @@ public class Enemy : MonoBehaviour
                 }
 
             }
-            else if (Vector3.Distance(transform.position, player.transform.position) < 8.0f && direction < 90f)
+            else if (Vector3.Distance(transform.position, player.transform.position) < 4.0f && direction > 90f)
+            {
+                Reposition(0);
+            }
+            else if (Vector3.Distance(transform.position, player.transform.position) < 7.0f && direction < 90f)
             {
                 RangeAttack();
-                Reposition(7);
+                Reposition(5);
             }
-            else if (Vector3.Distance(transform.position, player.transform.position) < 8.0f && direction > 90f)
+            else if (Vector3.Distance(transform.position, player.transform.position) < 7.0f && direction > 90f)
             {
                 StopAttack();
-                Reposition(4);
+                Reposition(5);
             }
             else if (Vector3.Distance(transform.position, player.transform.position) > 10.0f)
             {
                 StopAttack();
-                Reposition(7);
+                Reposition(5);
             }
 
         }
         else
         {
             StopAttack();
-            if (spawn1 == null)
+            if (spawn == null)
                 return;
-            follow.target = spawn1.transform;
+            follow.target = spawn.transform;
+            Reposition(3);
             this.GetComponent<LookAt>().enabled = false;
         }
     }
@@ -174,23 +177,6 @@ public class Enemy : MonoBehaviour
     {
         follow.stoppingDistance = distance;
         this.GetComponent<NavMeshAgent>().stoppingDistance = distance;
-    }
-
-    private GameObject GetClosestSpawn(GameObject[] spwans)
-    {
-        Transform tMin = null;
-        float minDist = Mathf.Infinity;
-        Vector3 currentPos = transform.position;
-        foreach (GameObject t in spwans)
-        {
-            float dist = Vector3.Distance(t.transform.position, currentPos);
-            if (dist < minDist)
-            {
-                tMin = t.transform;
-                minDist = dist;
-            }
-        }
-        return tMin.gameObject;
     }
 
     private void RangeAttack()
