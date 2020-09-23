@@ -12,6 +12,7 @@ public class Enemy : MonoBehaviour
     Player player;
     GameObject spawn;
     GameObject npc;
+    GameSystem gameSystem;
     Animal dragon;
     public float AttackDelay;
     bool isAttacking;
@@ -31,6 +32,7 @@ public class Enemy : MonoBehaviour
         isAttacking = false;
         startHP = dragon.life;
         HPbar = GetComponentInChildren<Image>();
+        gameSystem = GameObject.FindWithTag("World").GetComponent<GameSystem>();
     }
 
     // Update is called once per frame
@@ -39,8 +41,14 @@ public class Enemy : MonoBehaviour
         HPbar.fillAmount = dragon.life / startHP;
         if (isDead())
         {
+            gameSystem.monsterKills++;
+            if (player.acceptedQuest.isActive)
+            {
+                player.acceptedQuest.Progress();
+                gameSystem.Alert(player.acceptedQuest.questTitle + ": " + player.acceptedQuest.current + "/" + player.acceptedQuest.goal + "!");
+            }
             dragon.Death = true;
-            dragon.life = 1;
+            dragon.DisableAnimal();      
             StartCoroutine(WaitandDestroy());
         }
         else

@@ -12,25 +12,26 @@ public class QuestHandler : MonoBehaviour
     public GameObject questHUD;
     public GameObject dialogHUD;
 
+    GameSystem gameSystem;
+
     public Text title;
     public Text desc;
     public Text reward;
-    public GameObject alert;
 
     public bool isComplete;
     private int count;
 
     void Start()
     {
+        gameSystem = GameObject.FindWithTag("World").GetComponent<GameSystem>();
         count = 0;
     }
 
     void Update()
     {
-        if(isComplete)
+        if (player.acceptedQuest.isActive && player.acceptedQuest.IsReached())
         {
             Complete();
-            isComplete = false;
         }
     }
 
@@ -77,36 +78,24 @@ public class QuestHandler : MonoBehaviour
             quest.isActive = true;
             player.acceptedQuest = quest;
             availableQuests.Remove(quest);
-            Alert(quest.questTitle + " has been accepted");
+            gameSystem.Alert(quest.questTitle + " has been accepted");
         }
         else
         {
-            Alert("Please finish your current quest!");
+            gameSystem.Alert("Please finish your current quest!");
         }
     }
 
-    private void Alert(string message)
-    {
-        alert.SetActive(true);
-        alert.GetComponent<Text>().text = message;
-        StartCoroutine(WaitandClear());
-    }
+    
 
     private void Complete()
     {
         player.acceptedQuest.isActive = false;
-        alert.SetActive(true);
-        alert.GetComponent<Text>().text = player.acceptedQuest.questTitle + " has been completed!";
+        gameSystem.Alert(player.acceptedQuest.questTitle + " has been completed!");
         availableQuests.Add(player.acceptedQuest);
         player.finishedQuests.Add(player.acceptedQuest);
         player.ClearQuest();
-       
-        StartCoroutine(WaitandClear());
     }
 
-    IEnumerator WaitandClear()
-    {
-        yield return new WaitForSeconds(5);
-        alert.SetActive(false);
-    }
+    
 }

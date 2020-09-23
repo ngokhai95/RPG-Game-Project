@@ -9,6 +9,7 @@ public class Player: MonoBehaviour
     public float Attack;
     public float Speed;
     public Quest acceptedQuest;
+    public bool isPathFinding;
     public List<Quest> finishedQuests;
     private Image HPbar;
     private float startHP;
@@ -17,17 +18,16 @@ public class Player: MonoBehaviour
     private void Start()
     {
         animator = GetComponent<Animator>();
-        Attack = 10f;
-        HP = 100f;
-        Speed = 0.3f;
         HPbar = GetComponentInChildren<Image>();
         startHP = HP;
+        isPathFinding = false;
     }
 
     private void Update()
     {
         HPbar.fillAmount = HP / startHP;
     }
+
 
     public bool isIdle()
     {

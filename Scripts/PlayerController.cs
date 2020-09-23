@@ -10,6 +10,8 @@ using System.Threading;
 using UnityEngine.SceneManagement;
 using MalbersAnimations;
 using Cinemachine;
+using UnityEngine.AI;
+using System;
 
 public class PlayerController : MonoBehaviour
 {
@@ -22,12 +24,15 @@ public class PlayerController : MonoBehaviour
     public CinemachineVirtualCamera playerCam;
     public float zoomSpd;
 
+    
     private float targetZoom;
     private float smoothValue;
     private Rigidbody Rigid;
     Vector3 verticalSpeed;
     Vector3 horizontalSpeed;
-    GameObject world;
+    GameSystem gameSystem;
+    GameObject goal;
+    NavMeshAgent agent;
     private bool isDead;
     
     
@@ -35,9 +40,11 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         Rigid = GetComponent<Rigidbody>();
-        world = GameObject.FindWithTag("World");
+        gameSystem = GameObject.FindWithTag("World").GetComponent<GameSystem>();
         isDead = false;
         smoothValue = 5.0f;
+        agent = GetComponent<NavMeshAgent>();
+        goal = GameObject.FindWithTag("Goal");
     }
 
     // Update is called once per frame
@@ -49,7 +56,7 @@ public class PlayerController : MonoBehaviour
             {
                 player.DeadAnimation();
                 isDead = true;
-                world.GetComponent<GameSystem>().PauseCharacter();
+                gameSystem.PauseCharacter();
             }
             else
             {
@@ -61,8 +68,31 @@ public class PlayerController : MonoBehaviour
                 Movement();
                 MovementAnimation();
                 Attack();
+                if(player.acceptedQuest.isActive && player.acceptedQuest.questType == Quest.Type.Exploring)
+                {
+                    UnityEngine.Debug.Log("Path Finding");
+                    if (!player.isPathFinding)
+                    {
+                        PathFinding();
+                        gameSystem.Alert("Going to destination...");
+                    }
+                    if (!agent.pathPending)
+                    {
+                        if (agent.remainingDistance <= agent.stoppingDistance)
+                        {
+                            if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
+                            {
+                                player.acceptedQuest.Progress();
+                                player.isPathFinding = false;
+                                agent.enabled = false;
+                            }
+                        }
+                    }
+                }
             }
         }
+
+        
     }
 
     private void OnTriggerEnter(Collider other)
@@ -77,6 +107,13 @@ public class PlayerController : MonoBehaviour
         }
 
 
+    }
+
+    private void PathFinding()
+    {
+        agent.enabled = true;
+        agent.destination = goal.transform.position;
+        player.isPathFinding = true;
     }
 
     //camera inputs
@@ -170,9 +207,14 @@ public class PlayerController : MonoBehaviour
 
     private void MovementAnimation()
     {
-        if (Input.GetKey(KeyCode.W))
+        if (Input.GetKey(KeyCode.W) || agent.velocity != Vector3.zero)
         {
             if (Rigid.velocity.magnitude <= player.Speed * walkSpd)
+                player.MoveAnimation(0);
+            else
+                player.RunAnimation(0);
+            
+            if (agent.speed <= player.Speed * walkSpd)
                 player.MoveAnimation(0);
             else
                 player.RunAnimation(0);
