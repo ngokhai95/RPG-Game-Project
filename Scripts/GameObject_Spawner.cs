@@ -12,14 +12,15 @@ public class GameObject_Spawner : MonoBehaviour
     GameObject prefab;
     public int numObjects = 10;
     public float spawnSize = 100f;
-    public LayerMask layerMask = ~0;
-    public int seedNo = 12345;
-    public Vector3 offset;
+    private LayerMask layerMask = ~0;
+    private int seedNo = 12345;
+    private Vector3 offset;
+    public float ratio = 0.2f;
 
 
     private float checkingHeight = 100000f;
     private Quaternion rotation;
-    private float ratio = 0.2f;
+    
     [HideInInspector] public GameObject[] spawnObjs;
     private GameObject spawnObj;
     private bool updateSettings = false;
@@ -100,7 +101,7 @@ public class GameObject_Spawner : MonoBehaviour
             CreateParent();
         }
         prefab = prefab_obj;
-        if (player == null || prefab == null) return;      
+        if (player == null || prefab == null) return;
         CreateObjects();
     }
 
@@ -110,7 +111,7 @@ public class GameObject_Spawner : MonoBehaviour
         {
             spawnObjs[i] = Instantiate(prefab, spawnObj.transform);
             spawnObjs[i].name = prefab.name + "_" + (i + 1).ToString();
-        }    
+        }
     }
 
     private void CreateObjects()
@@ -175,7 +176,7 @@ public class GameObject_Spawner : MonoBehaviour
             Vector3 lossyScale = new Vector3(4f, 4f, 4f);
             spawnObjs[i].transform.localScale = lossyScale;
         }
-       
+
 
         Physics.autoSimulation = true;
     }

@@ -30,6 +30,19 @@ public class GameSystem : MonoBehaviour
 
     }
 
+    public void loadScene(string name)
+    {
+        if (SceneManager.GetActiveScene().name == name)
+        {
+            Alert("You are currently at " + name + "!");
+        }
+        else
+        {
+            SceneManager.LoadScene(name);
+            Alert("Moving to " + name + "...");
+        }
+    }
+
     public void Alert(string message)
     {
         alertHUD.SetActive(true);

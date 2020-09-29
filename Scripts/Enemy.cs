@@ -10,7 +10,7 @@ public class Enemy : MonoBehaviour
 {
     AnimalAIControl follow;
     Player player;
-    GameObject spawn;
+    Transform spawn;
     GameObject npc;
     GameSystem gameSystem;
     Animal dragon;
@@ -25,7 +25,7 @@ public class Enemy : MonoBehaviour
     void Start()
     {
         player = GameObject.FindWithTag("Player").GetComponent<Player>() ;
-        spawn = this.transform.Find("Spawn Point").gameObject;    
+        spawn = this.transform; 
         follow = this.GetComponent<AnimalAIControl>();
         dragon = this.GetComponent<Animal>();
         npc = GameObject.FindWithTag("NPC");
@@ -62,7 +62,7 @@ public class Enemy : MonoBehaviour
                     this.GetComponent<LookAt>().enabled = false;
                     if (spawn == null)
                         return;
-                    follow.target = spawn.transform;
+                    follow.target = spawn;
                     Reposition(3);
                 }
             }
@@ -75,7 +75,7 @@ public class Enemy : MonoBehaviour
                     this.GetComponent<LookAt>().enabled = false;
                     if (spawn == null)
                         return;
-                    follow.target = spawn.transform; 
+                    follow.target = spawn; 
                 }
             }
             
@@ -144,7 +144,7 @@ public class Enemy : MonoBehaviour
             StopAttack();
             if (spawn == null)
                 return;
-            follow.target = spawn.transform;
+            follow.target = spawn;
             Reposition(3);
             this.GetComponent<LookAt>().enabled = false;
         }

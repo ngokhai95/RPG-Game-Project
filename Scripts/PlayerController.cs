@@ -101,7 +101,7 @@ public class PlayerController : MonoBehaviour
         {
             if (player.isAttacking())
             {
-                other.GetComponentInParent<Animal>().life = other.GetComponentInParent<Animal>().life - 5;
+                other.GetComponentInParent<Animal>().life = other.GetComponentInParent<Animal>().life - player.Attack;
                 other.GetComponentInParent<Animal>().Damaged = true;
             }
         }
