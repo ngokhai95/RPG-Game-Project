@@ -9,6 +9,7 @@ public class Quest
     public bool isActive;
     public string questTitle;
     public Type questType;
+    public Location questLocation;
     public string questDescription;
     public int questReward;
 
@@ -21,6 +22,14 @@ public class Quest
         Activity,
         Exploring,
         Gathering
+    }
+
+    public enum Location
+    {
+        Mountain,
+        Forest,
+        Desert,
+        River
     }
 
     public bool IsReached()
@@ -56,7 +65,18 @@ public class Quest
         }
     }
 
- 
+    public void Clear()
+    {
+        isActive = false;
+        questTitle = "";
+        questType = 0;
+        questLocation = 0;
+        questDescription = "";
+        questReward = 0;
+
+        goal = 0;
+        current = 0;
+}
 
 
 }

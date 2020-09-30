@@ -11,6 +11,7 @@ public class Player: MonoBehaviour
     public Quest acceptedQuest;
     public bool isPathFinding;
     public List<Quest> finishedQuests;
+    public float monsterKills;
     private Image HPbar;
     private float startHP;
     Animator animator;

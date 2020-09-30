@@ -57,6 +57,7 @@ public class PlayerController : MonoBehaviour
                 player.DeadAnimation();
                 isDead = true;
                 gameSystem.PauseCharacter();
+                StartCoroutine(WaitandRestart());
             }
             else
             {
@@ -68,25 +69,35 @@ public class PlayerController : MonoBehaviour
                 Movement();
                 MovementAnimation();
                 Attack();
-                if(player.acceptedQuest.isActive && player.acceptedQuest.questType == Quest.Type.Exploring)
+                Healing();
+                if (Input.GetKeyDown(KeyCode.F1))
                 {
-                    UnityEngine.Debug.Log("Path Finding");
-                    if (!player.isPathFinding)
+                    if (player.acceptedQuest.isActive
+                    && player.acceptedQuest.questType == Quest.Type.Exploring
+                    && gameSystem.location == player.acceptedQuest.questLocation.ToString())
                     {
-                        PathFinding();
-                        gameSystem.Alert("Going to destination...");
-                    }
-                    if (!agent.pathPending)
-                    {
-                        if (agent.remainingDistance <= agent.stoppingDistance)
+                        UnityEngine.Debug.Log("Path Finding");
+                        if (!player.isPathFinding)
                         {
-                            if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
-                            {
-                                player.acceptedQuest.Progress();
-                                player.isPathFinding = false;
-                                agent.enabled = false;
-                            }
+                            PathFinding();
+                            gameSystem.Alert("Going to destination...");
                         }
+                      
+                    }
+                    else
+                    {
+                        gameSystem.Alert("No Destination Available!");
+                    }
+                }
+                if (player.acceptedQuest.isActive
+                    && player.acceptedQuest.questType == Quest.Type.Exploring
+                    && gameSystem.location == player.acceptedQuest.questLocation.ToString())
+                {
+                    if (Vector3.Distance(transform.position, goal.transform.position) < 3.0f)
+                    {
+                        player.acceptedQuest.Progress();
+                        player.isPathFinding = false;
+                        agent.enabled = false;
                     }
                 }
             }
@@ -114,6 +125,7 @@ public class PlayerController : MonoBehaviour
         agent.enabled = true;
         agent.destination = goal.transform.position;
         player.isPathFinding = true;
+        agent.stoppingDistance = 5;
     }
 
     //camera inputs
@@ -140,6 +152,14 @@ public class PlayerController : MonoBehaviour
         {
             transform.rotation = Quaternion.Euler(0, followTarget.rotation.eulerAngles.y, 0);
             followTarget.localEulerAngles = new Vector3(angles.x, 0, 0);
+        }
+    }
+
+    private void Healing()
+    {
+        if (player.isIdle() && !player.isDamaged() && player.HP < 100)
+        {
+            player.HP += Time.deltaTime;
         }
     }
 
@@ -257,5 +277,12 @@ public class PlayerController : MonoBehaviour
         {
             player.AttackAnimation(4);
         }
+    }
+
+    IEnumerator WaitandRestart()
+    {
+        yield return new WaitForSeconds(3);
+        isDead = false;
+        gameSystem.RestartGame();
     }
 }

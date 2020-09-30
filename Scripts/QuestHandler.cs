@@ -6,8 +6,7 @@ using UnityEngine.UI;
 
 public class QuestHandler : MonoBehaviour
 {
-    public List<Quest> availableQuests;
-    private Quest quest;
+    public List<Quest> availableQuests = new List<Quest>();
     public Player player;
     public GameObject questHUD;
     public GameObject dialogHUD;
@@ -19,12 +18,23 @@ public class QuestHandler : MonoBehaviour
     public Text reward;
 
     public bool isComplete;
+
+    private Quest quest = new Quest();
     private int count;
+    private List<string> titleList = new List<string>();
 
     void Start()
     {
         gameSystem = GameObject.FindWithTag("World").GetComponent<GameSystem>();
         count = 0;
+        titleList.Add("Kill Dragons");
+        titleList.Add("Explore");
+        titleList.Add("Go Fishing");
+        titleList.Add("Go Gathering Wood");
+        for (int i = 0; i < 5; i++)
+        {
+            AddQuest();
+        }
     }
 
     void Update()
@@ -32,6 +42,51 @@ public class QuestHandler : MonoBehaviour
         if (player.acceptedQuest.isActive && player.acceptedQuest.IsReached())
         {
             Complete();
+        }
+    }
+
+    public void AddQuest()
+    {
+        quest = new Quest();
+        int randomType = Random.Range(0, 3);
+        switch (randomType)
+        {
+            case 0:
+                quest.questTitle = titleList[0];
+                quest.questType = Quest.Type.Killing;
+                quest.questLocation = (Quest.Location)Random.Range(0, 3);
+                quest.goal = Random.Range(2, 5);
+                quest.questDescription = "Go kill " + quest.goal + " Dragons at the " + quest.questLocation +"!";
+                quest.questReward = 10;
+                availableQuests.Add(quest);                  
+                break;
+            case 1:
+                quest.questLocation = (Quest.Location)Random.Range(0, 3);
+                quest.questTitle = titleList[1] + " " + quest.questLocation;
+                quest.questType = Quest.Type.Exploring;          
+                quest.goal = 1;
+                quest.questDescription = "Go to this location at the " + quest.questLocation + "!";
+                quest.questReward = 10;
+                availableQuests.Add(quest);
+                break;
+            case 2:
+                quest.questTitle = titleList[2];
+                quest.questType = Quest.Type.Activity;
+                quest.questLocation = Quest.Location.River;
+                quest.goal = Random.Range(2, 5);
+                quest.questDescription = "Go catch " + quest.goal + " Fishes at the " + quest.questLocation + "!";
+                quest.questReward = 10;
+                availableQuests.Add(quest);
+                break;
+            case 3:
+                quest.questTitle = titleList[3];
+                quest.questType = Quest.Type.Gathering;
+                quest.questLocation = Quest.Location.Forest;
+                quest.goal = Random.Range(2, 5);
+                quest.questDescription = "Go gather " + quest.goal + " Woods at the " + quest.questLocation + "!";
+                quest.questReward = 10;
+                availableQuests.Add(quest);
+                break;
         }
     }
 
@@ -78,12 +133,20 @@ public class QuestHandler : MonoBehaviour
             quest.isActive = true;
             player.acceptedQuest = quest;
             availableQuests.Remove(quest);
-            gameSystem.Alert(quest.questTitle + " has been accepted");
+            if (player.acceptedQuest.questType == Quest.Type.Exploring)
+            {
+                gameSystem.Alert("Quest has been accepted! Go to " + player.acceptedQuest.questLocation + " and press F1 to navigate!");
+            }
+            else
+            {
+                gameSystem.Alert(quest.questTitle + " has been accepted Go to " + player.acceptedQuest.questLocation + "to do it!");
+            }
         }
         else
         {
             gameSystem.Alert("Please finish your current quest!");
         }
+        gameSystem.Save();
     }
 
     
@@ -92,9 +155,10 @@ public class QuestHandler : MonoBehaviour
     {
         player.acceptedQuest.isActive = false;
         gameSystem.Alert(player.acceptedQuest.questTitle + " has been completed!");
-        availableQuests.Add(player.acceptedQuest);
         player.finishedQuests.Add(player.acceptedQuest);
         player.ClearQuest();
+        AddQuest();
+        gameSystem.Save();
     }
 
     

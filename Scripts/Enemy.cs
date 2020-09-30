@@ -41,15 +41,17 @@ public class Enemy : MonoBehaviour
         HPbar.fillAmount = dragon.life / startHP;
         if (isDead())
         {
-            gameSystem.monsterKills++;
-            if (player.acceptedQuest.isActive)
+            player.monsterKills++;
+            if (player.acceptedQuest.isActive && player.acceptedQuest.questLocation.ToString() == gameSystem.location)
             {
                 player.acceptedQuest.Progress();
                 gameSystem.Alert(player.acceptedQuest.questTitle + ": " + player.acceptedQuest.current + "/" + player.acceptedQuest.goal + "!");
             }
             dragon.Death = true;
-            dragon.DisableAnimal();      
-            StartCoroutine(WaitandDestroy());
+            dragon.DisableAnimal();
+            Destroy(this.gameObject);
+            gameSystem.Save();
+            //StartCoroutine(WaitandDestroy());
         }
         else
         {

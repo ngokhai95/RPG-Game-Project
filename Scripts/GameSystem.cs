@@ -7,27 +7,37 @@ using UnityEngine.UI;
 
 public class GameSystem : MonoBehaviour
 {
-    // Start is called before the first frame update
     public GameObject player;
     public GameObject npc;
     public GameObject alertHUD;
 
-    public float monsterKills;
+    public string location;
+    private GameObject goal;
 
     private void Start()
     {
-        monsterKills = 0;
+        Load();
+        location = SceneManager.GetActiveScene().name;
+        goal = GameObject.FindWithTag("Goal");
     }
-
-    // Update is called once per frame
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F1))
-        {
-            RestartGame();
-        }
         TalkToNPC();
+    }
 
+    public void Save()
+    {
+        SaveLoadSystem.Save(player.GetComponent<Player>());
+    }
+
+    public void Load()
+    {
+        SaveData data = SaveLoadSystem.Load();
+
+        player.GetComponent<Player>().HP = data.hp;
+        player.GetComponent<Player>().acceptedQuest = data.acceptedQuest;
+        player.GetComponent<Player>().finishedQuests = data.finishedQuests;
+        player.GetComponent<Player>().monsterKills = data.monsterKills;
     }
 
     public void loadScene(string name)
@@ -38,8 +48,9 @@ public class GameSystem : MonoBehaviour
         }
         else
         {
-            SceneManager.LoadScene(name);
+            Save();
             Alert("Moving to " + name + "...");
+            SceneManager.LoadScene(name);
         }
     }
 
@@ -52,6 +63,15 @@ public class GameSystem : MonoBehaviour
     public void TalkToNPC()
     {
         if (Vector3.Distance(player.transform.position, npc.transform.position) < 3.0f)
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                npc.GetComponent<QuestHandler>().dialogHUD.SetActive(true);
+                player.GetComponent<Player>().IdleAnimation();
+                PauseCharacter();
+            }
+        }
+        else if (Vector3.Distance(player.transform.position, goal.transform.position) < 3.0f)
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -87,7 +107,7 @@ public class GameSystem : MonoBehaviour
         Time.timeScale = 1;
     }
 
-    void RestartGame()
+    public void RestartGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
