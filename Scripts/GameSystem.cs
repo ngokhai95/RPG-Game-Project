@@ -14,6 +14,10 @@ public class GameSystem : MonoBehaviour
     public string location;
     private GameObject goal;
 
+    public FuzzyLogic logic = new FuzzyLogic();
+    public double kill;
+    public double time;
+
     private void Start()
     {
         Load();
@@ -23,6 +27,7 @@ public class GameSystem : MonoBehaviour
     private void Update()
     {
         TalkToNPC();
+        logic.BattleLogic(kill, 1/time);
     }
 
     public void Save()
