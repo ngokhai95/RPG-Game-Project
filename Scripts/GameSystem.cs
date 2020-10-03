@@ -16,7 +16,13 @@ public class GameSystem : MonoBehaviour
 
     public FuzzyLogic logic = new FuzzyLogic();
     public double kill;
-    public double time;
+    public double killquest;
+    public double numquest;
+    public double difficulty;
+    public double travel;
+    public double explorequest;
+    public double activity;
+    public double interact;
 
     private void Start()
     {
@@ -27,7 +33,7 @@ public class GameSystem : MonoBehaviour
     private void Update()
     {
         TalkToNPC();
-        logic.BattleLogic(kill, 1/time);
+        logic.Characterize(logic.KillerFuzzy(kill, killquest), logic.AchieverFuzzy(numquest, difficulty), logic.ExplorerFuzzy(travel, explorequest), logic.SocializerFuzzy(activity, interact));
     }
 
     public void Save()
