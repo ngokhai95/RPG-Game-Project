@@ -44,7 +44,6 @@ public class PlayerController : MonoBehaviour
         isDead = false;
         smoothValue = 5.0f;
         agent = GetComponent<NavMeshAgent>();
-        goal = GameObject.FindWithTag("Goal");
     }
 
     // Update is called once per frame
@@ -62,7 +61,7 @@ public class PlayerController : MonoBehaviour
             else
             {
                 //camera
-                CameraRotation();
+                AdaptiveRotation();
                 Zoom();
                 //character
                 Rotation();
@@ -129,7 +128,7 @@ public class PlayerController : MonoBehaviour
     }
 
     //camera inputs
-    private void CameraRotation()
+    private void AdaptiveRotation()
     {
         followTarget.rotation *= Quaternion.AngleAxis(Input.GetAxis("Mouse X") * sensitivity, Vector3.up);
         followTarget.rotation *= Quaternion.AngleAxis(-Input.GetAxis("Mouse Y") * sensitivity, Vector3.right);

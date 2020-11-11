@@ -11,7 +11,7 @@ public class Quest
     public Type questType;
     public Location questLocation;
     public string questDescription;
-    public int questReward;
+    public int questDifficulty;
 
     public float goal;
     public float current;
@@ -19,9 +19,7 @@ public class Quest
     public enum Type
     {
         Killing,
-        Activity,
-        Exploring,
-        Gathering
+        Exploring
     }
 
     public enum Location
@@ -51,15 +49,7 @@ public class Quest
         {
             current++;
         }
-        if (questType == Type.Gathering)
-        {
-            current++;
-        }
         if (questType == Type.Exploring)
-        {
-            current++;
-        }
-        if (questType == Type.Activity)
         {
             current++;
         }
@@ -72,11 +62,9 @@ public class Quest
         questType = 0;
         questLocation = 0;
         questDescription = "";
-        questReward = 0;
+        questDifficulty = 0;
 
         goal = 0;
         current = 0;
-}
-
-
+    }
 }

@@ -9,8 +9,10 @@ public class Player: MonoBehaviour
     public float Attack;
     public float Speed;
     public Quest acceptedQuest;
+    public Activity acceptedActivity;
     public bool isPathFinding;
     public List<Quest> finishedQuests;
+    public List<Activity> finishedActivities;
     public float monsterKills;
     private Image HPbar;
     private float startHP;
@@ -75,6 +77,10 @@ public class Player: MonoBehaviour
         acceptedQuest = new Quest();
     }
 
+    public void ClearActivity()
+    {
+        acceptedActivity = new Activity();
+    }
 
     //animation
     public void MoveAnimation(int direction)

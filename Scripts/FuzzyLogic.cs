@@ -10,7 +10,14 @@ public class FuzzyLogic
 
     public double KillerFuzzy(double killAmount, double killQuest)
     {
-        //Killer Characteristic Fuzzy Set
+        //Killer Fuzzy Set
+        LinguisticVariable killer = new LinguisticVariable("Killer");
+        var novice = killer.MembershipFunctions.AddTriangle("Novice", 0, 3, 3);
+        var advance = killer.MembershipFunctions.AddTriangle("Advance", 2, 5, 5);
+        var proficient = killer.MembershipFunctions.AddTriangle("Proficient", 4, 8, 8);
+        var expert = killer.MembershipFunctions.AddTrapezoid("Expert", 7, 8, 10, 10);
+
+        //Support Fuzzy Set
         LinguisticVariable amount = new LinguisticVariable("Amount");
         var low = amount.MembershipFunctions.AddTriangle("Low", 1, 50, 50);
         var medium = amount.MembershipFunctions.AddTriangle("Medium", 40, 80, 80);
@@ -25,13 +32,7 @@ public class FuzzyLogic
         /*LinguisticVariable time = new LinguisticVariable("Time");
         var slow = kill.MembershipFunctions.AddTrapezoid("Slow", 0, 0.006, 0.008, 0.008);
         var normal = kill.MembershipFunctions.AddTriangle("Normal", 0.007 , 0.16, 0.16);
-        var fast = kill.MembershipFunctions.AddTriangle("Fast", 0.15, 1, 1);*/
-
-        LinguisticVariable killer = new LinguisticVariable("Killer");
-        var novice = killer.MembershipFunctions.AddTriangle("Novice", 0, 3, 3);
-        var advance = killer.MembershipFunctions.AddTriangle("Advance", 2, 5, 5);
-        var proficient = killer.MembershipFunctions.AddTriangle("Proficient", 4, 8, 8);
-        var expert = killer.MembershipFunctions.AddTrapezoid("Expert", 7, 8, 10, 10);
+        var fast = kill.MembershipFunctions.AddTriangle("Fast", 0.15, 1, 1);*/ 
 
         IFuzzyEngine fuzzyEngine = new FuzzyEngineFactory().Create(new MoMDefuzzification());
 

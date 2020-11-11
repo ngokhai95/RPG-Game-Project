@@ -10,6 +10,7 @@ public class Enemy : MonoBehaviour
 {
     AnimalAIControl follow;
     Player player;
+    ContentHandler content;
     Transform spawn;
     GameObject npc;
     GameSystem gameSystem;
@@ -19,6 +20,9 @@ public class Enemy : MonoBehaviour
     float direction;
     Image HPbar;
     float startHP;
+    float currentHP;
+    int difficulty;
+    float range;
 
 
     // Start is called before the first frame update
@@ -30,23 +34,24 @@ public class Enemy : MonoBehaviour
         dragon = this.GetComponent<Animal>();
         npc = GameObject.FindWithTag("NPC");
         isAttacking = false;
+        currentHP = dragon.life;
+        startHP = currentHP;
         startHP = dragon.life;
         HPbar = GetComponentInChildren<Image>();
         gameSystem = GameObject.FindWithTag("World").GetComponent<GameSystem>();
+        difficulty = 1;
+        
     }
 
     // Update is called once per frame
     void Update()
     {
+        
         HPbar.fillAmount = dragon.life / startHP;
         if (isDead())
         {
             player.monsterKills++;
-            if (player.acceptedQuest.isActive && player.acceptedQuest.questLocation.ToString() == gameSystem.location)
-            {
-                player.acceptedQuest.Progress();
-                gameSystem.Alert(player.acceptedQuest.questTitle + ": " + player.acceptedQuest.current + "/" + player.acceptedQuest.goal + "!");
-            }
+            content.CheckProgress();
             dragon.Death = true;
             dragon.DisableAnimal();
             Destroy(this.gameObject);
@@ -57,6 +62,7 @@ public class Enemy : MonoBehaviour
         {
             if(player != null)
             {
+                DifficultyAdjustment();
                 FollowAndAttack(player.gameObject);
                 if (TargetDead(player.gameObject))
                 {
@@ -70,6 +76,7 @@ public class Enemy : MonoBehaviour
             }
             if(npc != null)
             {
+                DifficultyAdjustment();
                 FollowAndAttack(npc);
                 if (TargetDead(npc))
                 {
@@ -98,6 +105,28 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    private void DifficultyAdjustment()
+    {
+        switch(difficulty)
+        {
+            case 0:  //easy
+                range = 5.0f;
+                AttackDelay = 2.5f;
+                dragon.attackStrength = 1;
+                break;
+            case 1:  //medium
+                range = 2.0f;
+                AttackDelay = 2.0f;
+                dragon.attackStrength = 2;
+                break;
+            case 2:  //hard
+                range = 1.0f;
+                AttackDelay = 1.5f;
+                dragon.attackStrength = 3;
+                break;
+        }
+    }
+
     private void FollowAndAttack(GameObject player)
     {
         direction = Vector3.Angle(player.transform.position - dragon.transform.position, dragon.transform.forward);
@@ -120,21 +149,21 @@ public class Enemy : MonoBehaviour
                 }
 
             }
-            else if (Vector3.Distance(transform.position, player.transform.position) < 4.0f && direction > 90f)
+            else if (Vector3.Distance(transform.position, player.transform.position) < 3.0f + range && direction > 90f)
             {
                 Reposition(0);
             }
-            else if (Vector3.Distance(transform.position, player.transform.position) < 7.0f && direction < 90f)
+            else if (Vector3.Distance(transform.position, player.transform.position) < 6.0f + range && direction < 90f)
             {
                 RangeAttack();
                 Reposition(5);
             }
-            else if (Vector3.Distance(transform.position, player.transform.position) < 7.0f && direction > 90f)
+            else if (Vector3.Distance(transform.position, player.transform.position) < 6.0f + range && direction > 90f)
             {
                 StopAttack();
                 Reposition(5);
             }
-            else if (Vector3.Distance(transform.position, player.transform.position) > 10.0f)
+            else if (Vector3.Distance(transform.position, player.transform.position) > 10.0f + range)
             {
                 StopAttack();
                 Reposition(5);
@@ -144,10 +173,7 @@ public class Enemy : MonoBehaviour
         else
         {
             StopAttack();
-            if (spawn == null)
-                return;
-            follow.target = spawn;
-            Reposition(3);
+            ReturnToSpawn();
             this.GetComponent<LookAt>().enabled = false;
         }
     }
@@ -165,7 +191,7 @@ public class Enemy : MonoBehaviour
     {
         if (player == npc)
         {
-            if (player.GetComponent<NPCTraining>().npcHP <= 0)
+            if (player.GetComponent<NPCController>().npcHP <= 0)
             {
                 return true;
             }
@@ -181,6 +207,14 @@ public class Enemy : MonoBehaviour
             else
                 return false;
         }
+    }
+
+    private void ReturnToSpawn()
+    {
+        if (spawn == null)
+            return;
+        follow.target = spawn;
+        Reposition(3);
     }
 
     private void Reposition(float distance)
